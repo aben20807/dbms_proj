@@ -11,7 +11,7 @@ mod db {
 fn main() {
     println!("Hello, world!");
     let conn = db::sqlite::connect();
-    // db::sqlite::create_tables(&conn);
+    db::sqlite::create_tables(&conn);
     gui::gtk3::launch(conn);
     // println!("Hello, world!!!!");
     // let mut attrs = Vec::new();

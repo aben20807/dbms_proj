@@ -1,13 +1,11 @@
 // use rusqlite::types::ToSql;
 use rusqlite::{params, Connection, Result};
-// use time::Timespec;
 
 #[derive(Debug)]
-struct Person {
-    id: i32,
-    name: String,
-    // time_created: Timespec,
-    data: Option<Vec<u8>>,
+pub struct Person {
+    pub id: i32,
+    pub name: String,
+    pub gender: String,
 }
 
 pub fn connect() -> rusqlite::Connection {
@@ -17,10 +15,10 @@ pub fn connect() -> rusqlite::Connection {
 
 pub fn create_tables(conn: &rusqlite::Connection) {
     conn.execute(
-        "CREATE TABLE person (
+        "CREATE TABLE IF NOT EXISTS person (
                   id              INTEGER PRIMARY KEY,
                   name            TEXT NOT NULL,
-                  data            BLOB
+                  gender          TEXT NOT NULL
                   )",
         params![],
     ).unwrap();
@@ -28,65 +26,69 @@ pub fn create_tables(conn: &rusqlite::Connection) {
     let me = Person {
         id: 0,
         name: "Steven".to_string(),
-        data: None,
+        gender: "m".to_string(),
     };
     conn.execute(
-        "INSERT INTO person (name, data)
+        "INSERT INTO person (name, gender)
                   VALUES (?1, ?2)",
-        params![me.name, me.data],
+        params![me.name, me.gender],
     ).unwrap();
 }
 
 pub fn exec_sql<'a>(conn: &'a rusqlite::Connection, command: &str) -> rusqlite::Statement<'a> {
-    let mut stmt: rusqlite::Statement = conn.prepare(command).unwrap();
-    let person_iter = stmt.query_map(params![], |row| {
-        Ok(Person {
-            id: row.get(0)?,
-            name: row.get(1)?,
-            data: row.get(2)?,
-        })
-    }).unwrap();
+    let mut stmt = conn.prepare(command).unwrap();
+    // match stmt {
+    //     Ok(ret) => ret,
+    //     Err(err) => println!("wrong sql"),
+    // }
+    // let person_iter = stmt.query_map(params![], |row| {
+    //     Ok(Person {
+    //         id: row.get(0)?,
+    //         name: row.get(1)?,
+    //         gender: row.get(2)?,
+    //     })
+    // }).unwrap();
 
-    for person in person_iter {
-        println!("Found person {:?}", person.unwrap());
-    }
+    // for person in person_iter {
+    //     println!("Found person {:?}", person.unwrap());
+    // }
     stmt
 }
 
-pub fn test() -> Result<()> {
-    // let conn = Connection::open_in_memory()?;
-    let conn = Connection::open("./src/db/sqlite/mydb.sqlite")?;
+// pub fn test() -> Result<()> {
+//     // let conn = Connection::open_in_memory()?;
+//     let conn = Connection::open("./src/db/sqlite/mydb.sqlite")?;
 
-    conn.execute(
-        "CREATE TABLE person (
-                  id              INTEGER PRIMARY KEY,
-                  name            TEXT NOT NULL,
-                  data            BLOB
-                  )",
-        params![],
-    )?;
-    let me = Person {
-        id: 0,
-        name: "Steven".to_string(),
-        data: None,
-    };
-    conn.execute(
-        "INSERT INTO person (name, data)
-                  VALUES (?1, ?2)",
-        params![me.name, me.data],
-    )?;
+//     conn.execute(
+//         "CREATE TABLE person (
+//                   id              INTEGER PRIMARY KEY,
+//                   name            TEXT NOT NULL,
+//                   data            BLOB
+//                   )",
+//         params![],
+//     )?;
+//     let me = Person {
+//         id: 0,
+//         name: "Steven".to_string(),
+//         data: None,
+//     };
+//     conn.execute(
+//         "INSERT INTO person (name, data)
+//                   VALUES (?1, ?2)",
+//         params![me.name, me.data],
+//     )?;
 
-    let mut stmt = conn.prepare("SELECT id, name, data FROM person")?;
-    let person_iter = stmt.query_map(params![], |row| {
-        Ok(Person {
-            id: row.get(0)?,
-            name: row.get(1)?,
-            data: row.get(2)?,
-        })
-    })?;
+//     let mut stmt = conn.prepare("SELECT id, name, data FROM person")?;
+//     let person_iter = stmt.query_map(params![], |row| {
+//         Ok(Person {
+//             id: row.get(0)?,
+//             name: row.get(1)?,
+//             data: row.get(2)?,
+//         })
+//     })?;
 
-    for person in person_iter {
-        println!("Found person {:?}", person.unwrap());
-    }
-    Ok(())
-}
+//     for person in person_iter {
+//         println!("Found person {:?}", person.unwrap());
+//     }
+//     Ok(())
+// }

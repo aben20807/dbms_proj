@@ -3,7 +3,8 @@ use gtk::prelude::*;
 use gtk::{
     CellRendererText, ListStore, TreeView, TreeViewColumn,
 };
-
+use crate::db::sqlite::Person as Person;
+use rusqlite::types::Value as Value;
 use std::sync::Arc;
 
 pub fn launch(conn: rusqlite::Connection) {
@@ -41,8 +42,11 @@ pub fn launch(conn: rusqlite::Connection) {
     let builder2 = builder.clone();
     search.connect_clicked(move |_| {
         let keyword_cmd = keyword.get_text(&keyword.get_start_iter(), &keyword.get_end_iter(), false).unwrap();
-        let stmt: rusqlite::Statement = crate::db::sqlite::exec_sql(&conn2, keyword_cmd.as_str());
+        let mut stmt: rusqlite::Statement = crate::db::sqlite::exec_sql(&conn2, keyword_cmd.as_str());
         update_attr_to_view(&builder2, stmt.column_names());
+        let num = stmt.column_count();
+        // let mut rows = stmt.query(rusqlite::NO_PARAMS).unwrap();
+        update_row_to_view(&builder2, &mut stmt, num);
     });
 
     append_column(&view, 0, "id");
@@ -68,8 +72,74 @@ fn update_attr_to_view(builder: &gtk::Builder, attrs: Vec<&str>) {
     for (i, attr) in attrs.iter().enumerate() {
         append_column(&view, i as i32, attr);
     }
-    let model = ListStore::new(&[u32::static_type(), String::static_type(), String::static_type()]);
-    view.set_model(Some(&model));
+    //let model = ListStore::new(&[u32::static_type(), String::static_type(), String::static_type()]);
+    //view.set_model(Some(&model));
+}
+
+fn update_row_to_view(builder: &gtk::Builder, stmt: &mut rusqlite::Statement, num: usize) {
+    // let row_iter = stmt.query_map(params![], |row| {
+    //     Ok(Person {
+    //         id: row.get(0)?,
+    //         name: row.get(1)?,
+    //         data: row.get(2)?,
+    //     });
+    // let rows = (stmt.query(&[])).unwrap();
+    // let num_columns = rows.column_count().unwrap();
+    ////let rows = stmt.query_map(&[], |row| row.get(0)).unwrap();
+    // println!("Found person {:?}", rows);
+    // for i in 0..num_columns {
+    // fn c(row: &rusqlite::Row) -> crate::db::sqlite::Person {
+    //     row.get(0).unwrap();
+    // }
+    // for res in stmt.query_map(&[], c).unwrap() {
+    //     println!("Found person {:?}", res.unwrap());
+    // }
+    // for row in rows {
+        //let thing: crate::db::sqlite::Person = row.get::<_, crate::db::sqlite::Person>(i);
+    // }
+
+    //
+    // let mut rows = stmt.query(rusqlite::params![]).unwrap();
+
+    // let mut names = Vec::new();
+    // while let Some(result_row) = rows.next().unwrap() {
+    //     let row = result_row;
+    //     names.push(row.get(0));
+    // }
+
+    // let mut rows = stmt.query(rusqlite::NO_PARAMS).unwrap();
+
+    // let mut persons: Vec<crate::db::sqlite::Person> = Vec::new();
+    // while let Some(row) = rows.next().unwrap() {
+    //     for i in 0..num {
+    //         persons.push(Person::new(
+    //             row.get(0).unwrap(),
+    //             row.get(1).unwrap(),
+    //             row.get(2).unwrap()))
+    //     }
+    //     //names.push(row.get<_, crate::db::sqlite::Person>(0).unwrap());
+    // }
+    // let ids = Vec::new();
+    // let names = Vec::new();
+    // let genders = Vec::new();
+     println!("{}", num);
+     let person_iter = stmt.query_map(rusqlite::params![], |row| {
+         let mut r = Vec::new();
+         for i in 0..num {
+            r.push(row.get::<_, Value>(i).unwrap());
+         }
+         println!("{:?}", r);
+         //dict.push(r);
+        // Ok(Person {
+        //     id: row.get(0)?,
+        //     name: row.get(1)?,
+        //     gender: row.get(2)?,
+        // })
+        Ok(r)
+    }).unwrap();
+    for it in person_iter {
+        println!("{:?}, {}", it, num);
+    }
 }
 
 fn clear_view (builder: &gtk::Builder) {

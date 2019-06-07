@@ -33,7 +33,9 @@ Huang Po-Hsuan
   <!-- interface-name app -->
   <!-- interface-copyright Huang Po-Hsuan -->
   <!-- interface-authors Huang Po-Hsuan\n -->
-  <object class="GtkTextBuffer" id="keyword_buf"/>
+  <object class="GtkTextBuffer" id="keyword_buf">
+    <property name="text" translatable="yes">SELECT id, name, gender FROM person</property>
+  </object>
   <object class="GtkListStore" id="liststore1">
     <columns>
       <!-- column-name command -->
