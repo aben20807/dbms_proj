@@ -6,17 +6,6 @@ use gtk::{
 
 use std::sync::Arc;
 
-fn append_column(view: &TreeView, id: i32, title: &str) {
-    let column = TreeViewColumn::new();
-    let cell = CellRendererText::new();
-
-    column.pack_start(&cell, true);
-    // Association of the view's column with the model's `id` column.
-    column.add_attribute(&cell, "text", id);
-    column.set_title(title);
-    view.append_column(&column);
-}
-
 pub fn launch(conn: rusqlite::Connection) {
     gtk::init().unwrap_or_else(|_| panic!("panic!"));
     let builder = gtk::Builder::new_from_string(include_str!("app.ui"));
@@ -73,6 +62,16 @@ pub fn launch(conn: rusqlite::Connection) {
     gtk::main();
 }
 
+fn update_attr_to_view(builder: &gtk::Builder, attrs: Vec<&str>) {
+    let view: gtk::TreeView = builder.get_object("view").unwrap();
+    clear_view(&builder);
+    for (i, attr) in attrs.iter().enumerate() {
+        append_column(&view, i as i32, attr);
+    }
+    let model = ListStore::new(&[u32::static_type(), String::static_type(), String::static_type()]);
+    view.set_model(Some(&model));
+}
+
 fn clear_view (builder: &gtk::Builder) {
     let view: gtk::TreeView = builder.get_object("view").unwrap();
     let rms = view.get_columns();
@@ -81,12 +80,13 @@ fn clear_view (builder: &gtk::Builder) {
     }
 }
 
-pub fn update_attr_to_view(builder: &gtk::Builder, attrs: Vec<&str>) {
-    let view: gtk::TreeView = builder.get_object("view").unwrap();
-    clear_view(&builder);
-    for (i, attr) in attrs.iter().enumerate() {
-        append_column(&view, i as i32, attr);
-    }
-    let model = ListStore::new(&[u32::static_type(), String::static_type(), String::static_type()]);
-    view.set_model(Some(&model));
+fn append_column(view: &TreeView, id: i32, title: &str) {
+    let column = TreeViewColumn::new();
+    let cell = CellRendererText::new();
+
+    column.pack_start(&cell, true);
+    // Association of the view's column with the model's `id` column.
+    column.add_attribute(&cell, "text", id);
+    column.set_title(title);
+    view.append_column(&column);
 }
