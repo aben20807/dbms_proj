@@ -3,7 +3,6 @@ use gtk::prelude::*;
 use gtk::{
     CellRendererText, ListStore, TreeView, TreeViewColumn,
 };
-use crate::db::sqlite::Person as Person;
 use rusqlite::types::Value as Value;
 use std::sync::Arc;
 
@@ -12,6 +11,7 @@ pub fn launch(conn: rusqlite::Connection) {
     let builder = gtk::Builder::new_from_string(include_str!("app.ui"));
     let window: gtk::Window = builder.get_object("app").unwrap();
     let combo: gtk::ComboBox = builder.get_object("combobox").unwrap();
+    let status: gtk::Label = builder.get_object("status").unwrap();
     let view: gtk::TreeView = builder.get_object("view").unwrap();
     // search button
     let search: gtk::Button = builder.get_object("search").unwrap();
@@ -31,22 +31,30 @@ pub fn launch(conn: rusqlite::Connection) {
     let conn1 = conn.clone();
     let builder1 = builder.clone();
     combo.connect_changed(move |_| {
-        let mut attrs = Vec::new();
-        attrs.push("a");
-        attrs.push("b");
-        update_attr_to_view(&builder1, attrs);
-        crate::db::sqlite::exec_sql(&conn1, "SELECT id, name, data FROM person");
+        // let mut attrs = Vec::new();
+        // attrs.push("a");
+        // attrs.push("b");
+        // update_attr_to_view(&builder1, attrs);
+        //crate::db::sqlite::exec_sql(&conn1, "SELECT id, name, data FROM person");
     });
 
     let conn2 = conn.clone();
     let builder2 = builder.clone();
     search.connect_clicked(move |_| {
         let keyword_cmd = keyword.get_text(&keyword.get_start_iter(), &keyword.get_end_iter(), false).unwrap();
-        let mut stmt: rusqlite::Statement = crate::db::sqlite::exec_sql(&conn2, keyword_cmd.as_str());
-        update_attr_to_view(&builder2, stmt.column_names());
-        let num = stmt.column_count();
-        // let mut rows = stmt.query(rusqlite::NO_PARAMS).unwrap();
-        update_row_to_view(&builder2, &mut stmt, num);
+        let stmt = crate::db::sqlite::exec_sql(&conn2, keyword_cmd.as_str());
+        match stmt {
+            Ok(mut stmt) => {
+                 update_attr_to_view(&builder2, stmt.column_names());
+                let num = stmt.column_count();
+                update_row_to_view(&builder2, &mut stmt, num);
+                status.set_text(format!("success").as_str());
+            }
+            Err(err) => {
+                status.set_text(format!("wrong sql: {}", err).as_str());
+            }
+        }
+
     });
 
     append_column(&view, 0, "id");
@@ -72,8 +80,8 @@ fn update_attr_to_view(builder: &gtk::Builder, attrs: Vec<&str>) {
     for (i, attr) in attrs.iter().enumerate() {
         append_column(&view, i as i32, attr);
     }
-    //let model = ListStore::new(&[u32::static_type(), String::static_type(), String::static_type()]);
-    //view.set_model(Some(&model));
+    let model = ListStore::new(&[u32::static_type(), String::static_type(), String::static_type()]);
+    view.set_model(Some(&model));
 }
 
 fn update_row_to_view(builder: &gtk::Builder, stmt: &mut rusqlite::Statement, num: usize) {
