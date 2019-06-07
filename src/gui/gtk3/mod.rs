@@ -23,11 +23,13 @@ pub fn launch(conn: rusqlite::Connection) {
     let window: gtk::Window = builder.get_object("app").unwrap();
     let combo: gtk::ComboBox = builder.get_object("combobox").unwrap();
     let view: gtk::TreeView = builder.get_object("view").unwrap();
+    // search button
     let search: gtk::Button = builder.get_object("search").unwrap();
+    // keyword or search command
+    let keyword: gtk::TextBuffer = builder.get_object("keyword_buf").unwrap();
 
+    let builder = Arc::new(builder);
     let conn = Arc::new(conn);
-    let conn1 = conn.clone();
-    let conn2 = conn.clone();
 
     window.set_title("DBMS project");
     window.show_all();
@@ -36,16 +38,22 @@ pub fn launch(conn: rusqlite::Connection) {
         Inhibit(false)
     });
 
+    let conn1 = conn.clone();
+    let builder1 = builder.clone();
     combo.connect_changed(move |_| {
         let mut attrs = Vec::new();
         attrs.push("a");
         attrs.push("b");
-        update_attr_to_view(&builder, attrs);
+        update_attr_to_view(&builder1, attrs);
         crate::db::sqlite::exec_sql(&conn1, "SELECT id, name, data FROM person");
     });
 
+    let conn2 = conn.clone();
+    let builder2 = builder.clone();
     search.connect_clicked(move |_| {
-        crate::db::sqlite::exec_sql(&conn2, "SELECT id, name, data FROM person");
+        let keyword_cmd = keyword.get_text(&keyword.get_start_iter(), &keyword.get_end_iter(), false).unwrap();
+        let stmt: rusqlite::Statement = crate::db::sqlite::exec_sql(&conn2, keyword_cmd.as_str());
+        update_attr_to_view(&builder2, stmt.column_names());
     });
 
     append_column(&view, 0, "id");
@@ -58,22 +66,24 @@ pub fn launch(conn: rusqlite::Connection) {
     for (i, entry) in entries.iter().enumerate() {
         model.insert_with_values(None, &[0, 1, 2], &[&(i as u32 + 1), &entry, &phone[i]]);
     }
-    // for (i, entry) in phone.iter().enumerate() {
-    //     model.insert_with_values(None, &[0, 1], &[&(i as u32 + 1), &entry]);
-    // }
+
     view.set_model(Some(&model));
     view.set_grid_lines(gtk::TreeViewGridLines::Both);
     view.set_headers_visible(true);
     gtk::main();
 }
 
-pub fn update_attr_to_view(builder: &gtk::Builder, attrs: Vec<&str>) {
+fn clear_view (builder: &gtk::Builder) {
     let view: gtk::TreeView = builder.get_object("view").unwrap();
-    // view.clear();
     let rms = view.get_columns();
     for rm in rms.iter() {
         view.remove_column(rm);
     }
+}
+
+pub fn update_attr_to_view(builder: &gtk::Builder, attrs: Vec<&str>) {
+    let view: gtk::TreeView = builder.get_object("view").unwrap();
+    clear_view(&builder);
     for (i, attr) in attrs.iter().enumerate() {
         append_column(&view, i as i32, attr);
     }

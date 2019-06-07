@@ -37,8 +37,8 @@ pub fn create_tables(conn: &rusqlite::Connection) {
     ).unwrap();
 }
 
-pub fn exec_sql(conn: &rusqlite::Connection, command: &str) {
-    let mut stmt = conn.prepare(command).unwrap();
+pub fn exec_sql<'a>(conn: &'a rusqlite::Connection, command: &str) -> rusqlite::Statement<'a> {
+    let mut stmt: rusqlite::Statement = conn.prepare(command).unwrap();
     let person_iter = stmt.query_map(params![], |row| {
         Ok(Person {
             id: row.get(0)?,
@@ -50,6 +50,7 @@ pub fn exec_sql(conn: &rusqlite::Connection, command: &str) {
     for person in person_iter {
         println!("Found person {:?}", person.unwrap());
     }
+    stmt
 }
 
 pub fn test() -> Result<()> {
