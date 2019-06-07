@@ -3,14 +3,10 @@ use gtk::prelude::*;
 use gtk::{
     CellRendererText, ListStore, TreeView, TreeViewColumn,
 };
-// static mut builder = None;//gtk::Builder::new_from_string(include_str!("app.ui"));
-// static mut window: gtk::Window = None;// builder.get_object("app").unwrap();
-// static mut combo: gtk::ComboBox = None;//builder.get_object("combobox").unwrap();
-// static mut view: gtk::TreeView = None;//builder.get_object("view").unwrap();
 
+use std::sync::Arc;
 
-fn append_column(view: &TreeView, id: i32, title: &str)
-{
+fn append_column(view: &TreeView, id: i32, title: &str) {
     let column = TreeViewColumn::new();
     let cell = CellRendererText::new();
 
@@ -21,14 +17,17 @@ fn append_column(view: &TreeView, id: i32, title: &str)
     view.append_column(&column);
 }
 
-pub fn launch() -> TreeView
-{
+pub fn launch(conn: rusqlite::Connection) {
     gtk::init().unwrap_or_else(|_| panic!("panic!"));
     let builder = gtk::Builder::new_from_string(include_str!("app.ui"));
-
     let window: gtk::Window = builder.get_object("app").unwrap();
     let combo: gtk::ComboBox = builder.get_object("combobox").unwrap();
     let view: gtk::TreeView = builder.get_object("view").unwrap();
+    let search: gtk::Button = builder.get_object("search").unwrap();
+
+    let conn = Arc::new(conn);
+    let conn1 = conn.clone();
+    let conn2 = conn.clone();
 
     window.set_title("DBMS project");
     window.show_all();
@@ -38,7 +37,15 @@ pub fn launch() -> TreeView
     });
 
     combo.connect_changed(move |_| {
+        let mut attrs = Vec::new();
+        attrs.push("a");
+        attrs.push("b");
+        update_attr_to_view(&builder, attrs);
+        crate::db::sqlite::exec_sql(&conn1, "SELECT id, name, data FROM person");
+    });
 
+    search.connect_clicked(move |_| {
+        crate::db::sqlite::exec_sql(&conn2, "SELECT id, name, data FROM person");
     });
 
     append_column(&view, 0, "id");
@@ -58,12 +65,18 @@ pub fn launch() -> TreeView
     view.set_grid_lines(gtk::TreeViewGridLines::Both);
     view.set_headers_visible(true);
     gtk::main();
-    view
 }
 
-pub fn update_attr_to_view(view: &TreeView, attrs: Vec<&str>)
-{
+pub fn update_attr_to_view(builder: &gtk::Builder, attrs: Vec<&str>) {
+    let view: gtk::TreeView = builder.get_object("view").unwrap();
+    // view.clear();
+    let rms = view.get_columns();
+    for rm in rms.iter() {
+        view.remove_column(rm);
+    }
     for (i, attr) in attrs.iter().enumerate() {
         append_column(&view, i as i32, attr);
     }
+    let model = ListStore::new(&[u32::static_type(), String::static_type(), String::static_type()]);
+    view.set_model(Some(&model));
 }

@@ -33,7 +33,7 @@ Huang Po-Hsuan
   <!-- interface-name app -->
   <!-- interface-copyright Huang Po-Hsuan -->
   <!-- interface-authors Huang Po-Hsuan\n -->
-  <object class="GtkTextBuffer" id="keyword"/>
+  <object class="GtkTextBuffer" id="keyword_buf"/>
   <object class="GtkListStore" id="liststore1">
     <columns>
       <!-- column-name command -->
@@ -161,7 +161,7 @@ Huang Po-Hsuan
                     <property name="margin_top">1</property>
                     <property name="margin_bottom">1</property>
                     <property name="hexpand">True</property>
-                    <property name="buffer">keyword</property>
+                    <property name="buffer">keyword_buf</property>
                   </object>
                 </child>
               </object>
@@ -179,6 +179,23 @@ Huang Po-Hsuan
           </packing>
         </child>
         <child>
+          <object class="GtkButton" id="search">
+            <property name="label" translatable="yes">search</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">True</property>
+            <property name="margin_left">2</property>
+            <property name="margin_right">2</property>
+            <property name="margin_top">1</property>
+            <property name="margin_bottom">1</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">3</property>
+          </packing>
+        </child>
+        <child>
           <object class="GtkLabel" id="status">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
@@ -187,7 +204,7 @@ Huang Po-Hsuan
           <packing>
             <property name="expand">False</property>
             <property name="fill">True</property>
-            <property name="position">3</property>
+            <property name="position">4</property>
           </packing>
         </child>
         <child>
@@ -212,7 +229,7 @@ Huang Po-Hsuan
           <packing>
             <property name="expand">False</property>
             <property name="fill">True</property>
-            <property name="position">4</property>
+            <property name="position">5</property>
           </packing>
         </child>
       </object>
