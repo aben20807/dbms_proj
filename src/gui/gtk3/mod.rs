@@ -5,8 +5,6 @@ use gtk::{
 };
 use rusqlite::types::Value as Value;
 use std::sync::Arc;
-use std::cell::RefCell;
-use std::rc::Rc;
 
 pub fn launch(conn: rusqlite::Connection) {
     gtk::init().unwrap_or_else(|_| panic!("panic!"));
@@ -23,10 +21,7 @@ pub fn launch(conn: rusqlite::Connection) {
 
     let builder = Arc::new(builder);
     let conn = Arc::new(conn);
-    // let combo = Arc::new(combo);
     let mode = Arc::new(mode);
-    // let mut mode = String::new();
-    // let mode = Rc::new(RefCell::new(String::from("None")));
 
     window.set_title("DBMS project");
     window.show_all();
@@ -35,29 +30,19 @@ pub fn launch(conn: rusqlite::Connection) {
         Inhibit(false)
     });
 
-    //let conn1 = conn.clone();
-    //let builder1 = builder.clone();
     let mode1 = mode.clone();
-    // let combo1 = combo.clone();
     combo.connect_changed(move |combo| {
         if let None = combo.get_active_text() {
             return;
         } else {
             mode1.set_text(combo.get_active_text().unwrap().as_str());
         }
-
-        // ID
-        // mode1.set_text(combo.get_active_id().unwrap().as_str());
-        // mode1.set_text("SQL");
-        // println!("{}", combo1.get_active_id().unwrap().as_str());
-        // *mode1.borrow_mut() = String::from(combo.get_active_id().unwrap().as_str());
     });
 
     let conn2 = conn.clone();
     let builder2 = builder.clone();
     let mode2 = mode.clone();
     search.connect_clicked(move |_| {
-
         match mode2.get_text(&mode2.get_start_iter(), &mode2.get_end_iter(), false) {
             None => (),
             Some(s) => {
@@ -76,7 +61,19 @@ pub fn launch(conn: rusqlite::Connection) {
                         }
                     }
                 } else if s == "ID" {
-
+                    let keyword_cmd = "SELECT id FROM person";
+                    let stmt = crate::db::sqlite::exec_sql(&conn2, keyword_cmd);
+                    match stmt {
+                        Ok(mut stmt) => {
+                            update_attr_to_view(&builder2, stmt.column_names());
+                            let num = stmt.column_count();
+                            update_row_to_view(&builder2, &mut stmt, num);
+                            status.set_text(format!("success").as_str());
+                        }
+                        Err(err) => {
+                            status.set_text(format!("wrong sql: {}", err).as_str());
+                        }
+                    }
                 }
             },
         }
