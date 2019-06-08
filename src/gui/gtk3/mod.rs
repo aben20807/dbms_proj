@@ -5,21 +5,28 @@ use gtk::{
 };
 use rusqlite::types::Value as Value;
 use std::sync::Arc;
+use std::cell::RefCell;
+use std::rc::Rc;
 
 pub fn launch(conn: rusqlite::Connection) {
     gtk::init().unwrap_or_else(|_| panic!("panic!"));
     let builder = gtk::Builder::new_from_string(include_str!("app.ui"));
     let window: gtk::Window = builder.get_object("app").unwrap();
-    let combo: gtk::ComboBox = builder.get_object("combobox").unwrap();
+    let combo: gtk::ComboBoxText = builder.get_object("combo").unwrap();
     let status: gtk::Label = builder.get_object("status").unwrap();
     let view: gtk::TreeView = builder.get_object("view").unwrap();
     // search button
     let search: gtk::Button = builder.get_object("search").unwrap();
     // keyword or search command
     let keyword: gtk::TextBuffer = builder.get_object("keyword_buf").unwrap();
+    let mode: gtk::TextBuffer = builder.get_object("mode").unwrap();
 
     let builder = Arc::new(builder);
     let conn = Arc::new(conn);
+    // let combo = Arc::new(combo);
+    let mode = Arc::new(mode);
+    // let mut mode = String::new();
+    // let mode = Rc::new(RefCell::new(String::from("None")));
 
     window.set_title("DBMS project");
     window.show_all();
@@ -28,33 +35,68 @@ pub fn launch(conn: rusqlite::Connection) {
         Inhibit(false)
     });
 
-    let conn1 = conn.clone();
-    let builder1 = builder.clone();
-    combo.connect_changed(move |_| {
-        // let mut attrs = Vec::new();
-        // attrs.push("a");
-        // attrs.push("b");
-        // update_attr_to_view(&builder1, attrs);
-        //crate::db::sqlite::exec_sql(&conn1, "SELECT id, name, data FROM person");
+    //let conn1 = conn.clone();
+    //let builder1 = builder.clone();
+    let mode1 = mode.clone();
+    // let combo1 = combo.clone();
+    combo.connect_changed(move |combo| {
+        if let None = combo.get_active_text() {
+            return;
+        } else {
+            mode1.set_text(combo.get_active_text().unwrap().as_str());
+        }
+
+        // ID
+        // mode1.set_text(combo.get_active_id().unwrap().as_str());
+        // mode1.set_text("SQL");
+        // println!("{}", combo1.get_active_id().unwrap().as_str());
+        // *mode1.borrow_mut() = String::from(combo.get_active_id().unwrap().as_str());
     });
 
     let conn2 = conn.clone();
     let builder2 = builder.clone();
+    let mode2 = mode.clone();
     search.connect_clicked(move |_| {
-        let keyword_cmd = keyword.get_text(&keyword.get_start_iter(), &keyword.get_end_iter(), false).unwrap();
-        let stmt = crate::db::sqlite::exec_sql(&conn2, keyword_cmd.as_str());
-        match stmt {
-            Ok(mut stmt) => {
-                 update_attr_to_view(&builder2, stmt.column_names());
-                let num = stmt.column_count();
-                update_row_to_view(&builder2, &mut stmt, num);
-                status.set_text(format!("success").as_str());
-            }
-            Err(err) => {
-                status.set_text(format!("wrong sql: {}", err).as_str());
-            }
-        }
 
+        match mode2.get_text(&mode2.get_start_iter(), &mode2.get_end_iter(), false) {
+            None => (),
+            Some(s) => {
+                if s == "SQL" {
+                    let keyword_cmd = keyword.get_text(&keyword.get_start_iter(), &keyword.get_end_iter(), false).unwrap();
+                    let stmt = crate::db::sqlite::exec_sql(&conn2, keyword_cmd.as_str());
+                    match stmt {
+                        Ok(mut stmt) => {
+                            update_attr_to_view(&builder2, stmt.column_names());
+                            let num = stmt.column_count();
+                            update_row_to_view(&builder2, &mut stmt, num);
+                            status.set_text(format!("success").as_str());
+                        }
+                        Err(err) => {
+                            status.set_text(format!("wrong sql: {}", err).as_str());
+                        }
+                    }
+                } else if s == "ID" {
+
+                }
+            },
+        }
+        // if mode2.borrow().unwrap() == None {
+
+        // } else if mode2.borrow() == Some("SQL".to_string()) {
+        //     let keyword_cmd = keyword.get_text(&keyword.get_start_iter(), &keyword.get_end_iter(), false).unwrap();
+        //     let stmt = crate::db::sqlite::exec_sql(&conn2, keyword_cmd.as_str());
+        //     match stmt {
+        //         Ok(mut stmt) => {
+        //             update_attr_to_view(&builder2, stmt.column_names());
+        //             let num = stmt.column_count();
+        //             update_row_to_view(&builder2, &mut stmt, num);
+        //             status.set_text(format!("success").as_str());
+        //         }
+        //         Err(err) => {
+        //             status.set_text(format!("wrong sql: {}", err).as_str());
+        //         }
+        //     }
+        // }
     });
 
     append_column(&view, 0, "id");
@@ -85,51 +127,6 @@ fn update_attr_to_view(builder: &gtk::Builder, attrs: Vec<&str>) {
 }
 
 fn update_row_to_view(builder: &gtk::Builder, stmt: &mut rusqlite::Statement, num: usize) {
-    // let row_iter = stmt.query_map(params![], |row| {
-    //     Ok(Person {
-    //         id: row.get(0)?,
-    //         name: row.get(1)?,
-    //         data: row.get(2)?,
-    //     });
-    // let rows = (stmt.query(&[])).unwrap();
-    // let num_columns = rows.column_count().unwrap();
-    ////let rows = stmt.query_map(&[], |row| row.get(0)).unwrap();
-    // println!("Found person {:?}", rows);
-    // for i in 0..num_columns {
-    // fn c(row: &rusqlite::Row) -> crate::db::sqlite::Person {
-    //     row.get(0).unwrap();
-    // }
-    // for res in stmt.query_map(&[], c).unwrap() {
-    //     println!("Found person {:?}", res.unwrap());
-    // }
-    // for row in rows {
-        //let thing: crate::db::sqlite::Person = row.get::<_, crate::db::sqlite::Person>(i);
-    // }
-
-    //
-    // let mut rows = stmt.query(rusqlite::params![]).unwrap();
-
-    // let mut names = Vec::new();
-    // while let Some(result_row) = rows.next().unwrap() {
-    //     let row = result_row;
-    //     names.push(row.get(0));
-    // }
-
-    // let mut rows = stmt.query(rusqlite::NO_PARAMS).unwrap();
-
-    // let mut persons: Vec<crate::db::sqlite::Person> = Vec::new();
-    // while let Some(row) = rows.next().unwrap() {
-    //     for i in 0..num {
-    //         persons.push(Person::new(
-    //             row.get(0).unwrap(),
-    //             row.get(1).unwrap(),
-    //             row.get(2).unwrap()))
-    //     }
-    //     //names.push(row.get<_, crate::db::sqlite::Person>(0).unwrap());
-    // }
-    // let ids = Vec::new();
-    // let names = Vec::new();
-    // let genders = Vec::new();
      println!("{}", num);
      let person_iter = stmt.query_map(rusqlite::params![], |row| {
          let mut r = Vec::new();
@@ -137,12 +134,6 @@ fn update_row_to_view(builder: &gtk::Builder, stmt: &mut rusqlite::Statement, nu
             r.push(row.get::<_, Value>(i).unwrap());
          }
          println!("{:?}", r);
-         //dict.push(r);
-        // Ok(Person {
-        //     id: row.get(0)?,
-        //     name: row.get(1)?,
-        //     gender: row.get(2)?,
-        // })
         Ok(r)
     }).unwrap();
     for it in person_iter {
