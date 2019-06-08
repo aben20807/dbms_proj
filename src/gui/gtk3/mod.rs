@@ -85,18 +85,6 @@ pub fn launch(conn: rusqlite::Connection) {
         }
     });
 
-    append_column(&view, 0, "id");
-    append_column(&view, 1, "name");
-    append_column(&view, 2, "phone");
-    let model = ListStore::new(&[u32::static_type(), String::static_type(), String::static_type()]);
-    // Filling up the tree view.
-    let entries = &["Michel", "Sara", "Liam", "Zelda", "Neo", "Octopus master"];
-    let phone = &["09", "08", "07", "06", "02", "006"];
-    for (i, entry) in entries.iter().enumerate() {
-        model.insert_with_values(None, &[0, 1, 2], &[&(i as u32 + 1), &entry, &phone[i]]);
-    }
-
-    view.set_model(Some(&model));
     view.set_grid_lines(gtk::TreeViewGridLines::Both);
     view.set_headers_visible(true);
     gtk::main();
@@ -105,37 +93,30 @@ pub fn launch(conn: rusqlite::Connection) {
 fn update_attr_to_view(builder: &gtk::Builder, attrs: Vec<&str>) {
     let view: gtk::TreeView = builder.get_object("view").unwrap();
     clear_view(&builder);
+    // Add title of each column after getting query result.
     for (i, attr) in attrs.iter().enumerate() {
         append_column(&view, i as i32, attr);
     }
-    //let model = ListStore::new(&[String::static_type(), String::static_type(), String::static_type()]);
-    //view.set_model(Some(&model));
 }
 
 fn update_row_to_view(builder: &gtk::Builder, stmt: &mut rusqlite::Statement, num: usize) {
-    //  println!("{}", num);
     let view: gtk::TreeView = builder.get_object("view").unwrap();
-    let model = view.get_model().unwrap();
-    let iters = stmt.query_map(rusqlite::params![], |row| {
+    let rows = stmt.query_map(rusqlite::params![], |row| {
          let mut r = Vec::new();
          for i in 0..num {
             r.push(row.get::<_, Value>(i).unwrap());
          }
-         //println!("{:?}", r);
         Ok(r)
     }).unwrap();
-    //let model = ListStore::new(&[String::static_type(), String::static_type(), String::static_type()]);
-    //view.set_model(Some(&model));
     let mut v = Vec::new();
-    for it in iters {
-        // println!("{:?}, {}", it, i);
-        v.push(it.unwrap());
-        // model.insert_with_values(None, &[0, 1, 2], &[&(i as u32 + 1), &entry, &phone[i]]);
+    for row in rows {
+        // Collect the row into vector.
+        v.push(row.unwrap());
     }
-    for (i, it) in v.iter().enumerate() {
-        println!("{:?}, {}", it, i);
-        // model.insert_with_values(None, &[0, 1, 2], &[&(i as u32 + 1), &entry, &phone[i]]);
-    }
+    // debug:
+    // for (i, it) in v.iter().enumerate() {
+    //     println!("{:?}, {}", it, i);
+    // }
     let model = create_and_fill_model(v);
     view.set_model(Some(&model));
 }
@@ -160,22 +141,16 @@ fn append_column(view: &TreeView, id: i32, title: &str) {
 }
 
 fn create_and_fill_model(v: Vec<Vec<Value>>) -> ListStore {
-    // Creation of a model with two rows.
+    // Creation of a model with n column where n is the columns of result.
     let listtype = get_liststore_type(v.get(0).unwrap().len());
-    //let model1 = ListStore::new(&[String::static_type(), String::static_type(), String::static_type()]);
-
     let model = ListStore::new(&listtype);
-    //model1.append();
-    // Filling up the tree view.
 
-    // model.set_value(&iter, 0, &"Sample".to_value() as &gtk::Value);
-    // model.set_value(&iter, 1, &"Sample".to_value() as &gtk::Value);
-    // model.set_value(&iter, 2, &"Sample".to_value() as &gtk::Value);
+    // Filling up the tree view.
     for vi in v.iter() {
         let iter = model.insert(-1);
         for (i, vii) in vi.iter().enumerate() {
             let data: &mut gtk::Value = &mut 0.to_value();
-            // data ;
+            // Convert data into value for inserting model
             match vii {
                 rusqlite::types::Value::Integer(i) => *data = i.to_value(),
                 rusqlite::types::Value::Real(f) => *data = f.to_value(),
@@ -184,7 +159,6 @@ fn create_and_fill_model(v: Vec<Vec<Value>>) -> ListStore {
             }
             model.set_value(&iter, i as u32, data as &gtk::Value);
         }
-        // model.insert_with_values(None, &[0, 1], &[&(i as u32 + 1), &entry]);
     }
     model
 }

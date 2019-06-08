@@ -1,4 +1,3 @@
-// use rusqlite::types::ToSql;
 use rusqlite::{params, Connection, Result};
 
 #[derive(Debug)]
