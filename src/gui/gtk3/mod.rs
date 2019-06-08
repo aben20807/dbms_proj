@@ -111,11 +111,12 @@ pub fn launch(conn: rusqlite::Connection) {
     // Basic:
     let arc_keyword = keyword.clone();
     btn_select.connect_clicked(move |_| {
-        arc_keyword.set_text("SELECT member.Name, Title, room.Name, building.Name FROM member
-            JOIN movie USING(MovieId)
-            JOIN room USING (RoomId)
-            JOIN building USING (BuildingId)
-            ORDER BY MemberId");
+        arc_keyword.set_text(
+            "SELECT member.Name, Title, room.Name, building.Name FROM member
+             JOIN movie USING(MovieId)
+             JOIN room USING (RoomId)
+             JOIN building USING (BuildingId)
+             ORDER BY MemberId");
     });
     let arc_keyword = keyword.clone();
     btn_delete.connect_clicked(move |_| {
@@ -125,13 +126,41 @@ pub fn launch(conn: rusqlite::Connection) {
     btn_insert.connect_clicked(move |_| {
         arc_keyword.set_text(
             "INSERT INTO member
-            (name, gender, phone, movieid, roomid) VALUES
-            (\"哈哈哈\", \"F\", \"8767654637\", \"4\", \"5\")");
+             (name, gender, phone, movieid, roomid) VALUES
+             (\"哈哈哈\", \"F\", \"8767654637\", \"4\", \"5\")");
     });
     let arc_keyword = keyword.clone();
     btn_update.connect_clicked(move |_| {
         arc_keyword.set_text(
             "UPDATE member SET Gender = \"M\" WHERE Name = \"OuO\"");
+    });
+
+    // Nested:
+    let arc_keyword = keyword.clone();
+    btn_in.connect_clicked(move |_| {
+        arc_keyword.set_text(
+            "SELECT MemberId, Name FROM member WHERE MovieId IN
+             (SELECT MovieId FROM movie WHERE Title = \"Aquamanara\")");
+    });
+    let arc_keyword = keyword.clone();
+    btn_notin.connect_clicked(move |_| {
+        arc_keyword.set_text(
+            "SELECT MemberId, Name FROM member WHERE MovieId NOT IN
+             (SELECT MovieId FROM movie WHERE Title = \"Aquamanara\")");
+    });
+    let arc_keyword = keyword.clone();
+    btn_exists.connect_clicked(move |_| {
+        arc_keyword.set_text(
+            "SELECT CategoryId, Name FROM category
+             WHERE EXISTS
+             (SELECT * FROM movie WHERE movie.CategoryId = category.CategoryId)");
+    });
+    let arc_keyword = keyword.clone();
+    btn_notexists.connect_clicked(move |_| {
+        arc_keyword.set_text(
+            "SELECT CategoryId, Name FROM category
+             WHERE NOT EXISTS
+             (SELECT * FROM movie WHERE movie.CategoryId = category.CategoryId)");
     });
 
     view.set_grid_lines(gtk::TreeViewGridLines::Both);
