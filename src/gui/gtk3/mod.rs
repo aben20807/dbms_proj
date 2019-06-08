@@ -117,6 +117,10 @@ fn update_row_to_view(builder: &gtk::Builder, stmt: &mut rusqlite::Statement, nu
     // for (i, it) in v.iter().enumerate() {
     //     println!("{:?}, {}", it, i);
     // }
+    if v.len() == 0 {
+        clear_view(&builder);
+        return;
+    }
     let model = create_and_fill_model(v);
     view.set_model(Some(&model));
 }
