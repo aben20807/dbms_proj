@@ -108,9 +108,30 @@ pub fn launch(conn: rusqlite::Connection) {
         }
     });
 
+    // Basic:
     let arc_keyword = keyword.clone();
     btn_select.connect_clicked(move |_| {
-        arc_keyword.set_text("SELECT MemberId, Name, Gender FROM member");
+        arc_keyword.set_text("SELECT member.Name, Title, room.Name, building.Name FROM member
+            JOIN movie USING(MovieId)
+            JOIN room USING (RoomId)
+            JOIN building USING (BuildingId)
+            ORDER BY MemberId");
+    });
+    let arc_keyword = keyword.clone();
+    btn_delete.connect_clicked(move |_| {
+        arc_keyword.set_text("DELETE FROM member WHERE MemberId = 1");
+    });
+    let arc_keyword = keyword.clone();
+    btn_insert.connect_clicked(move |_| {
+        arc_keyword.set_text(
+            "INSERT INTO member
+            (name, gender, phone, movieid, roomid) VALUES
+            (\"哈哈哈\", \"F\", \"8767654637\", \"4\", \"5\")");
+    });
+    let arc_keyword = keyword.clone();
+    btn_update.connect_clicked(move |_| {
+        arc_keyword.set_text(
+            "UPDATE member SET Gender = \"M\" WHERE Name = \"OuO\"");
     });
 
     view.set_grid_lines(gtk::TreeViewGridLines::Both);

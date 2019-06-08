@@ -15,6 +15,7 @@ pub fn init_db(conn: &rusqlite::Connection) {
 }
 
 pub fn drop_db(conn: &rusqlite::Connection) {
+    println!("Droping DB...");
     // Drop tables
     conn.execute("DROP TABLE IF EXISTS member", params![]).unwrap();
     conn.execute("DROP TABLE IF EXISTS movie", params![]).unwrap();

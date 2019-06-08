@@ -16,5 +16,4 @@ fn main() {
     println!("GUI start!");
     gui::gtk3::launch(conn);
     println!("GUI end!");
-    println!("Droping DB...");
 }

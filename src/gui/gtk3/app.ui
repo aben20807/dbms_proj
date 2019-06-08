@@ -178,7 +178,7 @@ Huang Po-Hsuan
         </child>
         <child>
           <object class="GtkButton" id="search">
-            <property name="label" translatable="yes">search</property>
+            <property name="label" translatable="yes">execute</property>
             <property name="visible">True</property>
             <property name="can_focus">True</property>
             <property name="receives_default">True</property>
