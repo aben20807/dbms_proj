@@ -17,65 +17,86 @@ pub fn launch(conn: rusqlite::Connection) {
     let search: gtk::Button = builder.get_object("search").unwrap();
     // keyword or search command
     let keyword: gtk::TextBuffer = builder.get_object("keyword_buf").unwrap();
+    // text buffer for transfering message
     let mode: gtk::TextBuffer = builder.get_object("mode").unwrap();
+    // buttons
+    // Basic:
+    let btn_select: gtk::Button = builder.get_object("btn_select").unwrap();
+    let btn_delete: gtk::Button = builder.get_object("btn_delete").unwrap();
+    let btn_insert: gtk::Button = builder.get_object("btn_insert").unwrap();
+    let btn_update: gtk::Button = builder.get_object("btn_update").unwrap();
+    // Nested:
+    let btn_in: gtk::Button = builder.get_object("btn_in").unwrap();
+    let btn_notin: gtk::Button = builder.get_object("btn_notin").unwrap();
+    let btn_exists: gtk::Button = builder.get_object("btn_exists").unwrap();
+    let btn_notexists: gtk::Button = builder.get_object("btn_notexists").unwrap();
+    // Aggregate:
+    let btn_count: gtk::Button = builder.get_object("btn_count").unwrap();
+    let btn_sum: gtk::Button = builder.get_object("btn_sum").unwrap();
+    let btn_max: gtk::Button = builder.get_object("btn_max").unwrap();
+    let btn_min: gtk::Button = builder.get_object("btn_min").unwrap();
+    let btn_avg: gtk::Button = builder.get_object("btn_avg").unwrap();
+    let btn_having: gtk::Button = builder.get_object("btn_having").unwrap();
 
     let builder = Arc::new(builder);
     let conn = Arc::new(conn);
     let mode = Arc::new(mode);
+    let keyword = Arc::new(keyword);
 
     window.set_title("DBMS project");
     window.show_all();
-    let conn1 = conn.clone();
+    let arc_conn = conn.clone();
     window.connect_delete_event(move |_, _| {
         gtk::main_quit();
-        crate::db::sqlite::drop_db(&conn1);
+        crate::db::sqlite::drop_db(&arc_conn);
         Inhibit(false)
     });
 
-    let mode1 = mode.clone();
+    let arc_mode = mode.clone();
     combo.connect_changed(move |combo| {
         if let None = combo.get_active_text() {
             return;
         } else {
-            mode1.set_text(combo.get_active_text().unwrap().as_str());
+            arc_mode.set_text(combo.get_active_text().unwrap().as_str());
         }
     });
 
-    let conn2 = conn.clone();
-    let builder2 = builder.clone();
-    let mode2 = mode.clone();
+    let arc_conn = conn.clone();
+    let arc_builder = builder.clone();
+    let arc_mode = mode.clone();
+    let arc_keyword = keyword.clone();
     search.connect_clicked(move |_| {
-        match mode2.get_text(&mode2.get_start_iter(), &mode2.get_end_iter(), false) {
+        match arc_mode.get_text(&arc_mode.get_start_iter(), &arc_mode.get_end_iter(), false) {
             None => (),
             Some(s) => {
                 if s == "SQL" {
-                    let keyword_cmd = keyword.get_text(&keyword.get_start_iter(), &keyword.get_end_iter(), false).unwrap();
-                    let stmt = crate::db::sqlite::exec_sql(&conn2, keyword_cmd.as_str());
+                    let keyword_cmd = arc_keyword.get_text(&arc_keyword.get_start_iter(), &arc_keyword.get_end_iter(), false).unwrap();
+                    let stmt = crate::db::sqlite::exec_sql(&arc_conn, keyword_cmd.as_str());
                     match stmt {
                         Ok(mut stmt) => {
-                            update_attr_to_view(&builder2, stmt.column_names());
+                            update_attr_to_view(&arc_builder, stmt.column_names());
                             let num = stmt.column_count();
-                            update_row_to_view(&builder2, &mut stmt, num);
+                            update_row_to_view(&arc_builder, &mut stmt, num);
                             status.set_text(format!("success").as_str());
                         }
                         Err(err) => {
                             status.set_text(format!("wrong sql: {}", err).as_str());
                         }
                     }
-                } else if s == "ID" {
-                    let k = keyword.get_text(&keyword.get_start_iter(), &keyword.get_end_iter(), false).unwrap();
+                } else if s == "MemberId" {
+                    let k = arc_keyword.get_text(&arc_keyword.get_start_iter(), &arc_keyword.get_end_iter(), false).unwrap();
                     let mut keyword_cmd: String;
                     if k.as_str() == "" {
-                        keyword_cmd = String::from("SELECT * FROM person");
+                        keyword_cmd = String::from("SELECT * FROM member");
                     } else {
-                        keyword_cmd = format!("SELECT * FROM person WHERE {}", k.as_str());
+                        keyword_cmd = format!("SELECT * FROM member WHERE {}", k.as_str());
                     }
-                    let stmt = crate::db::sqlite::exec_sql(&conn2, keyword_cmd.as_str());
+                    let stmt = crate::db::sqlite::exec_sql(&arc_conn, keyword_cmd.as_str());
                     match stmt {
                         Ok(mut stmt) => {
-                            update_attr_to_view(&builder2, stmt.column_names());
+                            update_attr_to_view(&arc_builder, stmt.column_names());
                             let num = stmt.column_count();
-                            update_row_to_view(&builder2, &mut stmt, num);
+                            update_row_to_view(&arc_builder, &mut stmt, num);
                             status.set_text(format!("success").as_str());
                         }
                         Err(err) => {
@@ -85,6 +106,11 @@ pub fn launch(conn: rusqlite::Connection) {
                 }
             },
         }
+    });
+
+    let arc_keyword = keyword.clone();
+    btn_select.connect_clicked(move |_| {
+        arc_keyword.set_text("SELECT MemberId, Name, Gender FROM member");
     });
 
     view.set_grid_lines(gtk::TreeViewGridLines::Both);
