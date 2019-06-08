@@ -61,8 +61,14 @@ pub fn launch(conn: rusqlite::Connection) {
                         }
                     }
                 } else if s == "ID" {
-                    let keyword_cmd = "SELECT id FROM person";
-                    let stmt = crate::db::sqlite::exec_sql(&conn2, keyword_cmd);
+                    let k = keyword.get_text(&keyword.get_start_iter(), &keyword.get_end_iter(), false).unwrap();
+                    let mut keyword_cmd: String;
+                    if k.as_str() == "" {
+                        keyword_cmd = String::from("SELECT * FROM person");
+                    } else {
+                        keyword_cmd = format!("SELECT * FROM person WHERE {}", k.as_str());
+                    }
+                    let stmt = crate::db::sqlite::exec_sql(&conn2, keyword_cmd.as_str());
                     match stmt {
                         Ok(mut stmt) => {
                             update_attr_to_view(&builder2, stmt.column_names());
@@ -77,23 +83,6 @@ pub fn launch(conn: rusqlite::Connection) {
                 }
             },
         }
-        // if mode2.borrow().unwrap() == None {
-
-        // } else if mode2.borrow() == Some("SQL".to_string()) {
-        //     let keyword_cmd = keyword.get_text(&keyword.get_start_iter(), &keyword.get_end_iter(), false).unwrap();
-        //     let stmt = crate::db::sqlite::exec_sql(&conn2, keyword_cmd.as_str());
-        //     match stmt {
-        //         Ok(mut stmt) => {
-        //             update_attr_to_view(&builder2, stmt.column_names());
-        //             let num = stmt.column_count();
-        //             update_row_to_view(&builder2, &mut stmt, num);
-        //             status.set_text(format!("success").as_str());
-        //         }
-        //         Err(err) => {
-        //             status.set_text(format!("wrong sql: {}", err).as_str());
-        //         }
-        //     }
-        // }
     });
 
     append_column(&view, 0, "id");
