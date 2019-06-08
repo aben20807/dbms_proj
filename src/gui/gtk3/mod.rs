@@ -83,13 +83,14 @@ pub fn launch(conn: rusqlite::Connection) {
                             status.set_text(format!("wrong sql: {}", err).as_str());
                         }
                     }
-                } else if s == "MemberId" {
+                } else {
+                    let table_name = String::from(s);
                     let k = arc_keyword.get_text(&arc_keyword.get_start_iter(), &arc_keyword.get_end_iter(), false).unwrap();
                     let mut keyword_cmd: String;
                     if k.as_str() == "" {
-                        keyword_cmd = String::from("SELECT * FROM member");
+                        keyword_cmd = format!("SELECT * FROM {}", table_name);
                     } else {
-                        keyword_cmd = format!("SELECT * FROM member WHERE {}", k.as_str());
+                        keyword_cmd = format!("SELECT * FROM {} WHERE {}", table_name, k.as_str());
                     }
                     let stmt = crate::db::sqlite::exec_sql(&arc_conn, keyword_cmd.as_str());
                     match stmt {
@@ -112,7 +113,7 @@ pub fn launch(conn: rusqlite::Connection) {
     let arc_keyword = keyword.clone();
     btn_select.connect_clicked(move |_| {
         arc_keyword.set_text(
-            "SELECT member.Name, Title, room.Name, building.Name FROM member
+            "SELECT MemberId, member.Name, Gender, Title, room.Name, building.Name FROM member
              JOIN movie USING(MovieId)
              JOIN room USING (RoomId)
              JOIN building USING (BuildingId)
@@ -132,7 +133,7 @@ pub fn launch(conn: rusqlite::Connection) {
     let arc_keyword = keyword.clone();
     btn_update.connect_clicked(move |_| {
         arc_keyword.set_text(
-            "UPDATE member SET Gender = \"M\" WHERE Name = \"OuO\"");
+            "UPDATE member SET Gender = \"X\" WHERE Name = \"OuO\"");
     });
 
     // Nested:

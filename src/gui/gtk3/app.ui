@@ -52,11 +52,12 @@ Huang Po-Hsuan
   </object>
   <object class="GtkTextBuffer" id="mode"/>
   <object class="GtkWindow" id="app">
-    <property name="name">Ou</property>
+    <property name="name">DBMS project</property>
     <property name="can_focus">False</property>
+    <property name="title" translatable="yes">DBMS project</property>
     <property name="default_width">800</property>
     <property name="default_height">600</property>
-    <property name="icon_name">OuO</property>
+    <property name="icon_name">DBMS project</property>
     <child>
       <object class="GtkBox">
         <property name="visible">True</property>
@@ -104,8 +105,13 @@ Huang Po-Hsuan
                 <property name="can_focus">False</property>
                 <property name="hexpand">True</property>
                 <items>
-                  <item translatable="yes">MemberId</item>
                   <item translatable="yes">SQL</item>
+                  <item translatable="yes">member</item>
+                  <item translatable="yes">movie</item>
+                  <item translatable="yes">category</item>
+                  <item translatable="yes">room</item>
+                  <item translatable="yes">building</item>
+                  <item translatable="yes">like</item>
                 </items>
               </object>
               <packing>
@@ -505,6 +511,7 @@ Huang Po-Hsuan
               <object class="GtkLabel">
                 <property name="width_request">100</property>
                 <property name="can_focus">False</property>
+                <property name="opacity">0</property>
                 <property name="label" translatable="yes">debug: </property>
               </object>
               <packing>
@@ -516,6 +523,7 @@ Huang Po-Hsuan
             <child>
               <object class="GtkTextView">
                 <property name="can_focus">True</property>
+                <property name="opacity">0</property>
                 <property name="hexpand">True</property>
                 <property name="buffer">mode</property>
               </object>

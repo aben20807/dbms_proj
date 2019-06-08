@@ -46,7 +46,7 @@ pub fn create_tables(conn: &rusqlite::Connection) {
         "CREATE TABLE IF NOT EXISTS building (
                   BuildingId    INTEGER PRIMARY KEY,
                   Name          TEXT NOT NULL,
-                  Address       TEXT NOT NULL
+                  Area          TEXT NOT NULL
                   )",
         params![],
     ).unwrap();
@@ -181,7 +181,7 @@ pub fn insert_init_data(conn: &rusqlite::Connection) {
         "TAIPEI 101",
         "Shanghai World Financial Center",
         ];
-    let addresss = &[
+    let areas = &[
         "Dubai (AE)",
         "Shanghai (CN)",
         "Mecca (SA)",
@@ -194,10 +194,10 @@ pub fn insert_init_data(conn: &rusqlite::Connection) {
         "Shanghai (CN)",
     ];
     let mut stmt = conn.prepare(
-        "INSERT INTO building (Name, Address) VALUES (?1, ?2)"
+        "INSERT INTO building (Name, Area) VALUES (?1, ?2)"
         ).unwrap();
     for (i, name) in names.iter().enumerate() {
-        stmt.execute(&[name, addresss[i]]).unwrap();
+        stmt.execute(&[name, areas[i]]).unwrap();
     }
 
     // like
