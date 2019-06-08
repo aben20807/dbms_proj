@@ -174,7 +174,15 @@ fn create_and_fill_model(v: Vec<Vec<Value>>) -> ListStore {
     for vi in v.iter() {
         let iter = model.insert(-1);
         for (i, vii) in vi.iter().enumerate() {
-            model.set_value(&iter, i as u32, &"Sample".to_value() as &gtk::Value);
+            let data: &mut gtk::Value = &mut 0.to_value();
+            // data ;
+            match vii {
+                rusqlite::types::Value::Integer(i) => *data = i.to_value(),
+                rusqlite::types::Value::Real(f) => *data = f.to_value(),
+                rusqlite::types::Value::Text(s) => *data = s.to_value(),
+                _ => (),
+            }
+            model.set_value(&iter, i as u32, data as &gtk::Value);
         }
         // model.insert_with_values(None, &[0, 1], &[&(i as u32 + 1), &entry]);
     }
