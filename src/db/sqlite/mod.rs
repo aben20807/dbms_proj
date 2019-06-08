@@ -1,11 +1,6 @@
 use rusqlite::{params, Connection, Result};
 
-#[derive(Debug)]
-pub struct Person {
-    pub id: i32,
-    pub name: String,
-    pub gender: String,
-}
+mod init;
 
 pub fn connect() -> rusqlite::Connection {
     let conn = Connection::open("./src/db/sqlite/mydb.sqlite").unwrap();
@@ -14,9 +9,9 @@ pub fn connect() -> rusqlite::Connection {
 
 pub fn init_db(conn: &rusqlite::Connection) {
     println!("Creating tables...");
-    create_tables(conn);
+    init::create_tables(conn);
     println!("Inserting data...");
-    insert_init_data(conn);
+    init::insert_init_data(conn);
 }
 
 pub fn drop_db(conn: &rusqlite::Connection) {
@@ -27,92 +22,6 @@ pub fn drop_db(conn: &rusqlite::Connection) {
     conn.execute("DROP TABLE IF EXISTS room", params![]).unwrap();
     conn.execute("DROP TABLE IF EXISTS building", params![]).unwrap();
     conn.execute("DROP TABLE IF EXISTS like", params![]).unwrap();
-}
-
-fn create_tables(conn: &rusqlite::Connection) {
-    conn.execute(
-        "CREATE TABLE IF NOT EXISTS member (
-                  MemberId      INTEGER PRIMARY KEY,
-                  name          TEXT NOT NULL,
-                  gender        TEXT NOT NULL,
-                  phone         TEXT NOT NULL,
-                  MovieId       INTEGER,
-                  RoomId        INTEGER
-                  )",
-        params![],
-    ).unwrap();
-
-    conn.execute(
-        "CREATE TABLE IF NOT EXISTS movie (
-                  MovieId       INTEGER PRIMARY KEY,
-                  title         TEXT NOT NULL,
-                  RunningTime   TEXT NOT NULL,
-                  CategoryId    INTEGER
-                  )",
-        params![],
-    ).unwrap();
-
-    conn.execute(
-        "CREATE TABLE IF NOT EXISTS category (
-                  CategoryId    INTEGER PRIMARY KEY,
-                  name          TEXT NOT NULL,
-                  keyword       TEXT NOT NULL
-                  )",
-        params![],
-    ).unwrap();
-
-    conn.execute(
-        "CREATE TABLE IF NOT EXISTS room (
-                  RoomId        INTEGER PRIMARY KEY,
-                  name          TEXT NOT NULL,
-                  seats         TEXT NOT NULL,
-                  BuildingId    INTEGER
-                  )",
-        params![],
-    ).unwrap();
-
-    conn.execute(
-        "CREATE TABLE IF NOT EXISTS building (
-                  BuildingId    INTEGER PRIMARY KEY,
-                  name          TEXT NOT NULL,
-                  address       TEXT NOT NULL
-                  )",
-        params![],
-    ).unwrap();
-
-    conn.execute(
-        "CREATE TABLE IF NOT EXISTS like (
-                  MemberId      INTEGER,
-                  MovieId       INTEGER,
-                  PRIMARY KEY (MemberId, MovieId)
-                  )",
-        params![],
-    ).unwrap();
-
-}
-
-fn insert_init_data(conn: &rusqlite::Connection) {
-    // member
-    let names = &["Michel", "Sara", "Liam", "Zelda", "Neo", "Octopus", "Ben", "OuO", "XiongJJ", "Hello World"];
-    let genders = &["M", "F", "M", "F", "M", "M", "M", "?", "M", "F"];
-    let phones = &[
-        "2899198718",
-        "7912791298",
-        "9298188020",
-        "2910281820",
-        "8208092830",
-        "1297180287",
-        "2628761980",
-        "0283029372",
-        "1652765256",
-        "2382863829",
-    ];
-    let mut stmt = conn.prepare(
-        "INSERT INTO member (name, gender, phone) VALUES (?1, ?2, ?3)"
-        ).unwrap();
-    for (i, name) in names.iter().enumerate() {
-        stmt.execute(&[name, genders[i], phones[i]]).unwrap();
-    }
 }
 
 pub fn exec_sql<'a>(conn: &'a rusqlite::Connection, command: &str) -> Result<rusqlite::Statement<'a>> {
