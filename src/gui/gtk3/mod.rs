@@ -25,8 +25,10 @@ pub fn launch(conn: rusqlite::Connection) {
 
     window.set_title("DBMS project");
     window.show_all();
-    window.connect_delete_event(|_, _| {
+    let conn1 = conn.clone();
+    window.connect_delete_event(move |_, _| {
         gtk::main_quit();
+        crate::db::sqlite::drop_db(&conn1);
         Inhibit(false)
     });
 

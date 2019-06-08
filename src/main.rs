@@ -9,9 +9,12 @@ mod db {
 }
 
 fn main() {
-    println!("GUI start!");
+    println!("Connecting DB...");
     let conn = db::sqlite::connect();
-    db::sqlite::create_tables(&conn);
+    println!("Initializing DB...");
+    db::sqlite::init_db(&conn);
+    println!("GUI start!");
     gui::gtk3::launch(conn);
     println!("GUI end!");
+    println!("Droping DB...");
 }
