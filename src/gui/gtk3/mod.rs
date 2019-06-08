@@ -108,23 +108,36 @@ fn update_attr_to_view(builder: &gtk::Builder, attrs: Vec<&str>) {
     for (i, attr) in attrs.iter().enumerate() {
         append_column(&view, i as i32, attr);
     }
-    let model = ListStore::new(&[u32::static_type(), String::static_type(), String::static_type()]);
-    view.set_model(Some(&model));
+    //let model = ListStore::new(&[String::static_type(), String::static_type(), String::static_type()]);
+    //view.set_model(Some(&model));
 }
 
 fn update_row_to_view(builder: &gtk::Builder, stmt: &mut rusqlite::Statement, num: usize) {
-     println!("{}", num);
-     let person_iter = stmt.query_map(rusqlite::params![], |row| {
+    //  println!("{}", num);
+    let view: gtk::TreeView = builder.get_object("view").unwrap();
+    let model = view.get_model().unwrap();
+    let iters = stmt.query_map(rusqlite::params![], |row| {
          let mut r = Vec::new();
          for i in 0..num {
             r.push(row.get::<_, Value>(i).unwrap());
          }
-         println!("{:?}", r);
+         //println!("{:?}", r);
         Ok(r)
     }).unwrap();
-    for it in person_iter {
-        println!("{:?}, {}", it, num);
+    //let model = ListStore::new(&[String::static_type(), String::static_type(), String::static_type()]);
+    //view.set_model(Some(&model));
+    let mut v = Vec::new();
+    for it in iters {
+        // println!("{:?}, {}", it, i);
+        v.push(it.unwrap());
+        // model.insert_with_values(None, &[0, 1, 2], &[&(i as u32 + 1), &entry, &phone[i]]);
     }
+    for (i, it) in v.iter().enumerate() {
+        println!("{:?}, {}", it, i);
+        // model.insert_with_values(None, &[0, 1, 2], &[&(i as u32 + 1), &entry, &phone[i]]);
+    }
+    let model = create_and_fill_model(v);
+    view.set_model(Some(&model));
 }
 
 fn clear_view (builder: &gtk::Builder) {
@@ -144,4 +157,34 @@ fn append_column(view: &TreeView, id: i32, title: &str) {
     column.add_attribute(&cell, "text", id);
     column.set_title(title);
     view.append_column(&column);
+}
+
+fn create_and_fill_model(v: Vec<Vec<Value>>) -> ListStore {
+    // Creation of a model with two rows.
+    let listtype = get_liststore_type(v.get(0).unwrap().len());
+    //let model1 = ListStore::new(&[String::static_type(), String::static_type(), String::static_type()]);
+
+    let model = ListStore::new(&listtype);
+    //model1.append();
+    // Filling up the tree view.
+
+    // model.set_value(&iter, 0, &"Sample".to_value() as &gtk::Value);
+    // model.set_value(&iter, 1, &"Sample".to_value() as &gtk::Value);
+    // model.set_value(&iter, 2, &"Sample".to_value() as &gtk::Value);
+    for vi in v.iter() {
+        let iter = model.insert(-1);
+        for (i, vii) in vi.iter().enumerate() {
+            model.set_value(&iter, i as u32, &"Sample".to_value() as &gtk::Value);
+        }
+        // model.insert_with_values(None, &[0, 1], &[&(i as u32 + 1), &entry]);
+    }
+    model
+}
+
+fn get_liststore_type(num: usize) -> Vec<gtk::Type> {
+    let mut ret = Vec::new();
+    for _ in 0..num {
+        ret.push(String::static_type());
+    }
+    ret
 }
