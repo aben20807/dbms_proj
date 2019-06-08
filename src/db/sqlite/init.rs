@@ -80,7 +80,7 @@ pub fn insert_init_data(conn: &rusqlite::Connection) {
         "2382863829",
     ];
     let movie_ids = &["1", "2", "3", "2", "1", "2", "4", "5", "9", "4"];
-    let room_ids = &["7", "5", "6", "7", "7", "7", "3", "8", "2", "1"];
+    let room_ids = &["7", "5", "6", "5", "7", "4", "3", "8", "2", "1"];
     let mut stmt = conn.prepare(
         "INSERT INTO member (name, gender, phone, movieid, roomid) VALUES (?1, ?2, ?3, ?4, ?5)"
         ).unwrap();

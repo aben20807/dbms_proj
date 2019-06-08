@@ -163,6 +163,38 @@ pub fn launch(conn: rusqlite::Connection) {
              (SELECT * FROM movie WHERE movie.CategoryId = category.CategoryId)");
     });
 
+    // Aggregate:
+    let arc_keyword = keyword.clone();
+    btn_count.connect_clicked(move |_| {
+        arc_keyword.set_text(
+            "SELECT COUNT(MemberId) FROM member WHERE RoomId = \"5\"");
+    });
+    let arc_keyword = keyword.clone();
+    btn_sum.connect_clicked(move |_| {
+        arc_keyword.set_text(
+            "SELECT SUM(Seats) FROM room WHERE buildingId = \"1\"");
+    });
+    let arc_keyword = keyword.clone();
+    btn_max.connect_clicked(move |_| {
+        arc_keyword.set_text(
+            "SELECT MAX(Seats) FROM room");
+    });
+    let arc_keyword = keyword.clone();
+    btn_min.connect_clicked(move |_| {
+        arc_keyword.set_text(
+            "SELECT MIN(Seats) FROM room");
+    });
+    let arc_keyword = keyword.clone();
+    btn_avg.connect_clicked(move |_| {
+        arc_keyword.set_text(
+            "SELECT AVG(Seats) FROM room");
+    });
+    let arc_keyword = keyword.clone();
+    btn_having.connect_clicked(move |_| {
+        arc_keyword.set_text(
+            "SELECT Name, Seats FROM room GROUP BY Name HAVING Seats > 300");
+    });
+
     view.set_grid_lines(gtk::TreeViewGridLines::Both);
     view.set_headers_visible(true);
     gtk::main();
