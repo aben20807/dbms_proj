@@ -48,11 +48,13 @@ pub fn launch(conn: rusqlite::Connection) {
     let arc_conn = conn.clone();
     window.connect_delete_event(move |_, _| {
         gtk::main_quit();
+        // Before the end of program, drop all tables in the database.
         crate::db::sqlite::drop_db(&arc_conn);
         Inhibit(false)
     });
 
     let arc_mode = mode.clone();
+    // Set mode when the combobox is changed.
     combo.connect_changed(move |combo| {
         if let None = combo.get_active_text() {
             return;
@@ -61,6 +63,7 @@ pub fn launch(conn: rusqlite::Connection) {
         }
     });
 
+    // Execute command depends on the mode.
     let arc_conn = conn.clone();
     let arc_builder = builder.clone();
     let arc_mode = mode.clone();
@@ -69,6 +72,7 @@ pub fn launch(conn: rusqlite::Connection) {
         match arc_mode.get_text(&arc_mode.get_start_iter(), &arc_mode.get_end_iter(), false) {
             None => (),
             Some(s) => {
+                // Execute SQL command in text buffer.
                 if s == "SQL" {
                     let keyword_cmd = arc_keyword.get_text(&arc_keyword.get_start_iter(), &arc_keyword.get_end_iter(), false).unwrap();
                     let stmt = crate::db::sqlite::exec_sql(&arc_conn, keyword_cmd.as_str());
@@ -84,6 +88,7 @@ pub fn launch(conn: rusqlite::Connection) {
                         }
                     }
                 } else {
+                    // Use text buffer as keyword to search table.
                     let table_name = String::from(s);
                     let k = arc_keyword.get_text(&arc_keyword.get_start_iter(), &arc_keyword.get_end_iter(), false).unwrap();
                     let mut keyword_cmd: String;
@@ -113,10 +118,14 @@ pub fn launch(conn: rusqlite::Connection) {
     let arc_keyword = keyword.clone();
     btn_select.connect_clicked(move |_| {
         arc_keyword.set_text(
-            "SELECT MemberId, member.Name, Gender, Title, room.Name, building.Name FROM member
-             JOIN movie USING(MovieId)
-             JOIN room USING (RoomId)
-             JOIN building USING (BuildingId)
+            "SELECT
+                MemberId AS ID, member.Name, Gender,
+                Title AS Movie, room.Name AS Room,
+                building.Name AS Building
+             FROM member
+                JOIN movie USING (MovieId)
+                JOIN room USING (RoomId)
+                JOIN building USING (BuildingId)
              ORDER BY MemberId");
     });
     let arc_keyword = keyword.clone();
@@ -263,7 +272,7 @@ fn create_and_fill_model(v: Vec<Vec<Value>>) -> ListStore {
     // Filling up the tree view.
     for vi in v.iter() {
         let iter = model.insert(-1);
-        for (i, vii) in vi.iter().enumerate() {
+        for (idx, vii) in vi.iter().enumerate() {
             let data: &mut gtk::Value = &mut 0.to_value();
             // Convert data into value for inserting model
             match vii {
@@ -272,7 +281,7 @@ fn create_and_fill_model(v: Vec<Vec<Value>>) -> ListStore {
                 rusqlite::types::Value::Text(s) => *data = s.to_value(),
                 _ => (),
             }
-            model.set_value(&iter, i as u32, data as &gtk::Value);
+            model.set_value(&iter, idx as u32, data as &gtk::Value);
         }
     }
     model

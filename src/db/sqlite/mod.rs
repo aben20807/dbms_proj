@@ -11,6 +11,7 @@ pub fn connect() -> rusqlite::Connection {
 pub fn init_db(conn: &rusqlite::Connection) {
     println!("Creating tables...");
     init::create_tables(conn);
+
     println!("Inserting data...");
     init::insert_init_data(conn);
 }
