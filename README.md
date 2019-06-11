@@ -14,3 +14,6 @@
 ```
 libsqlite3-dev
 ```
+
+# Usage and Screenshots
++ see [Document](https://github.com/aben20807/dbms_proj/blob/master/Document.pdf)
