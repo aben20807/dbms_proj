@@ -16,4 +16,7 @@ libsqlite3-dev
 ```
 
 # Usage and Screenshots
-+ see [Document](https://github.com/aben20807/dbms_proj/blob/master/Document.pdf)
++ See [Document](https://github.com/aben20807/dbms_proj/blob/master/Document.pdf)
+
+# Check the database
++ Open the "resources/mydb.sqlite" by [online tool](https://sqliteonline.com/).
